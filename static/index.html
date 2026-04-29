@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FINEX - AI Financial Intelligence</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="light-mode">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>FINEX</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#" class="active" data-view="analyze-view">Analyze</a></li>
+                <li><a href="#" data-view="compare-view">Compare</a></li>
+                <li><a href="#" data-view="market-view">Market</a></li>
+                <li><a href="#" data-view="document-view">Extractor</a></li>
+                <li><a href="#" data-view="docs-view">Docs</a></li>
+            </ul>
+        </div>
+        <div class="nav-right">
+            <button id="theme-toggle" class="icon-btn" title="Toggle Theme">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+            <div id="auth-nav-container">
+                <button class="primary-btn" id="nav-get-started" data-view="auth-view">Get Started</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+
+        <!-- =======================
+             ANALYZE VIEW (Main)
+             ======================= -->
+        <div id="analyze-view" class="view-section active">
+            <div class="hero">
+                <form id="search-form" class="search-form">
+                    <div class="search-input-wrapper">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="symbol-input" placeholder="Enter stock symbol e.g. AAPL" required
+                            autocomplete="off">
+                        <button type="submit" class="submit-btn" id="analyze-btn">Analyze</button>
+                    </div>
+                </form>
+
+                <div class="recent-searches" id="recent-searches">
+                    <span>Recent: </span>
+                </div>
+            </div>
+
+            <!-- Empty State / Greeting -->
+            <div id="empty-state" class="empty-state">
+                <i class="fa-solid fa-compass hero-icon"></i>
+                <h2>Discover AI Financial Insights</h2>
+                <p>Enter a stock symbol to get a comprehensive quantitative and qualitative analysis powered by LLMs.
+                </p>
+            </div>
+
+            <div id="loading-spinner" class="hidden">
+                <div class="spinner"></div>
+                <p class="loading-text">Analyzing financials, computing metrics & generating AI insights...</p>
+            </div>
+
+            <main id="dashboard" class="hidden">
+                <div class="dashboard-header">
+                    <h1 id="stock-title">Stock Analysis</h1>
+                    <span class="badge" id="stock-sector">Equities</span>
+                </div>
+
+                <div class="top-cards">
+                    <div class="card score-card">
+                        <h3>Overall Health Score</h3>
+                        <div class="score-circle">
+                            <span id="overall-score-val">--</span>
+                        </div>
+                        <div class="grade-badge" id="overall-grade">--</div>
+                        <p id="overall-descriptor" class="descriptor">--</p>
+                    </div>
+
+                    <div class="card chart-card">
+                        <h3>Performance Radar</h3>
+                        <canvas id="healthChart"></canvas>
+                    </div>
+
+                    <div class="card flags-card">
+                        <h3><i class="fa-solid fa-triangle-exclamation"></i> Risk Flags</h3>
+                        <ul id="flags-list" class="styled-list"></ul>
+                    </div>
+                </div>
+
+                <div class="bottom-grid">
+                    <div class="card metrics-section">
+                        <h2><i class="fa-solid fa-calculator"></i> Quantitative Factors</h2>
+                        <div id="metrics-container" class="metrics-grid"></div>
+                    </div>
+
+                    <div class="card ai-section">
+                        <h2><i class="fa-solid fa-brain"></i> AI Verdict & Recommendation</h2>
+                        <div class="ai-box verdict-box">
+                            <h4>Executive Summary</h4>
+                            <p id="ai-verdict">--</p>
+                        </div>
+
+                        <div class="ai-box recommendation-box mt-3">
+                            <div class="rec-header">
+                                <span id="rec-action" class="badge">--</span>
+                                <span class="conviction-text"><i class="fa-solid fa-fire"></i> Conviction: <strong
+                                        id="rec-conviction">--</strong></span>
+                            </div>
+                            <p id="rec-reasoning" class="mt-2 text-muted"></p>
+                        </div>
+
+                        <div class="chat-container mt-4">
+                            <h4><i class="fa-regular fa-comments"></i> Ask FINEX</h4>
+                            <div id="chat-history" class="chat-history"></div>
+                            <form id="chat-form" class="chat-form">
+                                <input type="text" id="chat-input"
+                                    placeholder="Ask a follow-up question about this stock..." required>
+                                <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card statements-section mt-4">
+                    <h2><i class="fa-solid fa-file-invoice-dollar"></i> Financial Statements</h2>
+                    <div class="stmt-tabs" style="display: flex; gap: 1rem; margin-top: 1rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem;">
+                         <button class="stmt-tab active" data-target="inc-stmt-view" style="background:transparent; border:none; color:var(--text-main); font-weight:600; cursor:pointer;">Income Statement</button>
+                         <button class="stmt-tab" data-target="bal-stmt-view" style="background:transparent; border:none; color:var(--text-muted); font-weight:600; cursor:pointer;">Balance Sheet</button>
+                         <button class="stmt-tab" data-target="csh-stmt-view" style="background:transparent; border:none; color:var(--text-muted); font-weight:600; cursor:pointer;">Cash Flow</button>
+                    </div>
+                    <div id="inc-stmt-view" class="stmt-view mt-3">
+                        <div class="table-responsive" style="overflow-x: auto;">
+                            <div id="inc-stmt-table"></div>
+                        </div>
+                    </div>
+                    <div id="bal-stmt-view" class="stmt-view hidden mt-3">
+                        <div class="table-responsive" style="overflow-x: auto;">
+                            <div id="bal-stmt-table"></div>
+                        </div>
+                    </div>
+                    <div id="csh-stmt-view" class="stmt-view hidden mt-3">
+                        <div class="table-responsive" style="overflow-x: auto;">
+                            <div id="csh-stmt-table"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
+        <!-- =======================
+             COMPARE VIEW 
+             ======================= -->
+        <div id="compare-view" class="view-section hidden">
+            <div class="card text-center compare-hero">
+                <h2>Compare Stocks Side-by-Side</h2>
+                <p>Analyze the fundamental differences between two assets.</p>
+
+                <form id="compare-form" class="compare-form">
+                    <input type="text" id="comp-sym-1" placeholder="Symbol 1 (e.g. MSFT)" required>
+                    <span class="vs">VS</span>
+                    <input type="text" id="comp-sym-2" placeholder="Symbol 2 (e.g. AAPL)" required>
+                    <button type="submit" class="primary-btn">Compare Now</button>
+                </form>
+            </div>
+
+            <div id="compare-loading" class="hidden text-center mt-4">
+                <div class="spinner"></div>
+                <p id="compare-status-text">Fetching data for Symbol 1...</p>
+            </div>
+
+            <div id="compare-error-alert" class="hidden error-alert mt-4"></div>
+
+            <div id="compare-results" class="hidden mt-4">
+                <div class="compare-grid">
+                    <div id="comp-res-1" class="card"></div>
+                    <div id="comp-res-2" class="card"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =======================
+             MARKET VIEW 
+             ======================= -->
+        <div id="market-view" class="view-section hidden">
+            <div class="market-header">
+                <h2>Global Market Overview</h2>
+                <p class="text-muted">Real-time mock dashboard of trending assets</p>
+            </div>
+
+            <div class="market-indices grid-3 mt-4">
+                <div class="card index-card">
+                    <h3>S&P 500</h3>
+                    <h2 class="text-green">5,123.41 <i class="fa-solid fa-caret-up"></i></h2>
+                    <p class="text-green">+1.12% Today</p>
+                </div>
+                <div class="card index-card">
+                    <h3>NASDAQ</h3>
+                    <h2 class="text-green">16,231.84 <i class="fa-solid fa-caret-up"></i></h2>
+                    <p class="text-green">+1.54% Today</p>
+                </div>
+                <div class="card index-card">
+                    <h3>DOW JONES</h3>
+                    <h2 class="text-red">38,722.69 <i class="fa-solid fa-caret-down"></i></h2>
+                    <p class="text-red">-0.21% Today</p>
+                </div>
+            </div>
+
+            <div class="grid-2 mt-4">
+                <div class="card">
+                    <h3><i class="fa-solid fa-fire text-yellow"></i> Trending Equities</h3>
+                    <ul class="market-list">
+                        <li onclick="searchFromMarket('NVDA')">
+                            <div class="m-left"><strong>NVDA</strong> <span>Nvidia Corp</span></div>
+                            <div class="m-right text-green">+4.2%</div>
+                        </li>
+                        <li onclick="searchFromMarket('MSFT')">
+                            <div class="m-left"><strong>MSFT</strong> <span>Microsoft</span></div>
+                            <div class="m-right text-green">+1.8%</div>
+                        </li>
+                        <li onclick="searchFromMarket('RIVN')">
+                            <div class="m-left"><strong>RIVN</strong> <span>Rivian</span></div>
+                            <div class="m-right text-red">-3.1%</div>
+                        </li>
+                        <li onclick="searchFromMarket('AAPL')">
+                            <div class="m-left"><strong>AAPL</strong> <span>Apple Inc</span></div>
+                            <div class="m-right text-green">+0.5%</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3><i class="fa-solid fa-newspaper text-blue"></i> Market Sentiment</h3>
+                    <div class="sentiment-meter mt-3">
+                        <div class="meter-bar">
+                            <div class="meter-fill" style="width: 72%;"></div>
+                        </div>
+                        <div class="meter-labels">
+                            <span>Extreme Fear</span>
+                            <strong>Greed (72)</strong>
+                            <span>Extreme Greed</span>
+                        </div>
+                    </div>
+                    <p class="text-muted mt-3">Overall market sentiment remains bullish driven by strong tech earnings
+                        and AI advancements.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- =======================
+             DOCS VIEW 
+             ======================= -->
+        <div id="docs-view" class="view-section hidden">
+            <div class="docs-layout">
+                <aside class="docs-sidebar card">
+                    <ul class="docs-nav">
+                        <li><a href="#doc-intro" class="active">Introduction</a></li>
+                        <li><a href="#doc-scoring">Scoring Methodology</a></li>
+                        <li><a href="#doc-ai">AI Verdicts</a></li>
+                        <li><a href="#doc-faq">FAQ</a></li>
+                    </ul>
+                </aside>
+                <div class="docs-content card">
+                    <section id="doc-intro">
+                        <h2>Welcome to FINEX Documentation</h2>
+                        <p>FINEX is a next-generation AI financial analyst. It bridges the gap between raw financial
+                            data and actionable human-readable insights.</p>
+                        <div class="info-alert mt-2">
+                            <i class="fa-solid fa-info-circle"></i> This platform uses the AlphaVantage API for data and
+                            Google Gemini for AI analysis.
+                        </div>
+                    </section>
+
+                    <hr class="doc-sep">
+
+                    <section id="doc-scoring">
+                        <h2>Scoring Methodology</h2>
+                        <p>We analyze three distinct pillars of a company's financial health:</p>
+                        <div class="doc-grid">
+                            <div class="doc-box">
+                                <i class="fa-solid fa-money-bill-trend-up text-green"></i>
+                                <h4>Profitability</h4>
+                                <span>Measures efficiency in generating returns (ROE, Margins).</span>
+                            </div>
+                            <div class="doc-box">
+                                <i class="fa-solid fa-arrow-trend-up text-blue"></i>
+                                <h4>Growth</h4>
+                                <span>Evaluates Year-over-Year revenue and EPS increases.</span>
+                            </div>
+                            <div class="doc-box">
+                                <i class="fa-solid fa-shield-halved text-yellow"></i>
+                                <h4>Safety</h4>
+                                <span>Assesses liquidity and leverage risk (Debt-to-Equity).</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <hr class="doc-sep">
+
+                    <section id="doc-ai">
+                        <h2>AI Verdicts</h2>
+                        <p>Our integration with Google's Gemini LLM means the system actually "reads" the calculated
+                            metrics. It looks for correlations, identifies risks that mathematical models might miss,
+                            and issues a final <strong>Conviction Score</strong>.</p>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- =======================
+             DOCUMENT EXTRACTOR VIEW 
+             ======================= -->
+        <div id="document-view" class="view-section hidden">
+            <div class="hero">
+                <h2>AI Document Extractor</h2>
+                <p class="text-muted mt-2">Upload any financial document (PDF, Image, Word) and AI will parse it
+                    instantly.</p>
+            </div>
+            <div class="card doc-upload-card" id="drop-zone">
+                <input type="file" id="file-input" class="hidden" accept=".pdf,image/*,.doc,.docx" />
+                <i class="fa-solid fa-cloud-arrow-up hero-icon"></i>
+                <h3>Drag & Drop your document here</h3>
+                <p>or click to browse files</p>
+            </div>
+
+            <div id="doc-spinner" class="hidden mt-4" style="text-align:center;">
+                <div class="spinner"></div>
+                <p>AI is reading and extracting your document...</p>
+            </div>
+
+            <div id="doc-results" class="hidden mt-4">
+                <div class="dashboard-header">
+                    <h3 id="doc-filename">document.pdf</h3>
+                    <span class="badge" id="doc-category"
+                        style="background:var(--blue); color:white; border:none;">Unknown</span>
+                </div>
+                <div class="card mt-3">
+                    <h4 class="mb-2">Document Summary</h4>
+                    <p id="doc-summary" class="text-muted" style="line-height:1.6;"></p>
+                </div>
+                <div class="card mt-3">
+                    <h4>Extracted Data</h4>
+                    <div class="metrics-grid mt-2" id="doc-extracted-grid">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- =======================
+             AUTH VIEW 
+             ======================= -->
+        <div id="auth-view" class="view-section hidden">
+            <div class="auth-container">
+                <div class="card auth-card">
+                    <div class="auth-toggle">
+                        <button id="tab-login" class="active">Login</button>
+                        <button id="tab-register">Register</button>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form id="login-form" class="auth-form">
+                        <h2>Welcome Back</h2>
+                        <input type="text" id="login-user" placeholder="Username" required>
+                        <input type="password" id="login-pass" placeholder="Password" required>
+                        <div class="error-text hidden" id="login-error">Invalid credentials</div>
+                        <button type="submit" class="primary-btn w-100">Login</button>
+                    </form>
+
+                    <!-- Register Form -->
+                    <form id="register-form" class="auth-form hidden">
+                        <h2>Create Account</h2>
+                        <input type="text" id="reg-user" placeholder="Choose Username" required>
+                        <input type="password" id="reg-pass" placeholder="Create Password" required>
+                        <div class="success-text hidden" id="reg-success">Registered! You can now login.</div>
+                        <button type="submit" class="primary-btn w-100">Register</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Floating Global Chat Widget -->
+    <div id="global-chat-widget">
+        <button id="fab-chat" class="help-widget" title="Ask AI Anything">
+            <i class="fa-regular fa-comment-dots"></i>
+        </button>
+        <div id="global-chat-window" class="hidden card">
+            <div class="gchat-header">
+                <h3>FINEX AI</h3>
+                <button id="gchat-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="gchat-body" id="gchat-history">
+                <div class="chat-msg chat-ai">Hello! I am your FINEX agent. How can I help you today?</div>
+            </div>
+            <form id="gchat-form" class="chat-form" style="padding: 1rem; border-top: 1px solid var(--border-color);">
+                <input type="text" id="gchat-input" placeholder="Type a message..." required autocomplete="off">
+                <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/script.js?v=1.0.1"></script>
+</body>
+
+</html>
