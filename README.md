@@ -10,7 +10,6 @@ This project builds a Financial Intelligence System that mimics human analytical
 
 🧮 Quantitative financial matrix computation
 
-🧠 Vector memory using ChromaDB
 
 💾 Persistent storage with MongoDB
 
